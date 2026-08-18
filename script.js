@@ -47,7 +47,7 @@ let framesSinGesto = 0;
  * Lo bajamos de 5 a 3 para que responda más rápido.
  */
 
-const FRAMES_CONFIRMACION = 3;
+const FRAMES_CONFIRMACION = 2;
 
 
 /*
@@ -765,6 +765,17 @@ function detectarInteraccion(mano) {
 
 function detectarFormaMano(lm) {
 
+    if (!lm || lm.length < 21) {
+        return null;
+    }
+
+
+    /*
+    ==========================================================
+    DETECTAR DEDOS
+    ==========================================================
+    */
+
     const indice =
         dedoExtendido(
             lm,
@@ -802,42 +813,28 @@ function detectarFormaMano(lm) {
 
 
     const pulgar =
-        pulgarExtendido(
-            lm
-        );
+        pulgarExtendido(lm);
 
 
-    /*
-    ==========================================================
-    🤙 SHAKA
-    ==========================================================
-    */
-
-    if (
-        pulgar &&
-        !indice &&
-        !medio &&
-        !anular &&
-        menique
-    ) {
-
-        return "shaka";
-
-    }
+    const dedosExtendidos =
+        Number(indice) +
+        Number(medio) +
+        Number(anular) +
+        Number(menique);
 
 
     /*
     ==========================================================
     🖐️ MANO ABIERTA
+
+    Si los cuatro dedos principales están extendidos
+    y el pulgar también, es mano abierta.
     ==========================================================
     */
 
     if (
-        pulgar &&
-        indice &&
-        medio &&
-        anular &&
-        menique
+        dedosExtendidos >= 4 &&
+        pulgar
     ) {
 
         return "abierta";
@@ -847,28 +844,51 @@ function detectarFormaMano(lm) {
 
     /*
     ==========================================================
-    ☝️👍 ÍNDICE + PULGAR
-    ==========================================================
+    🤙 SHAKA
 
-    Solo índice y pulgar extendidos.
+    Pulgar + meñique.
+    ==========================================================
+    */
+
+    if (
+        pulgar &&
+        menique &&
+        !indice &&
+        !medio &&
+        !anular
+    ) {
+
+        return "shaka";
+
+    }
+
+
+    /*
+    ==========================================================
+    ☝️ + 👍
+
+    Índice y pulgar.
+
+    Permitimos que algún dedo secundario
+    sea detectado incorrectamente.
+    ==========================================================
     */
 
     if (
         indice &&
         pulgar &&
         !medio &&
-        !anular &&
-        !menique
+        !anular
     ) {
 
-        const distanciaDedos =
+        const separacion =
             distancia3D(
                 lm[8],
                 lm[4]
             );
 
 
-        const tamanoMano =
+        const tamano =
             distancia3D(
                 lm[0],
                 lm[9]
@@ -876,25 +896,12 @@ function detectarFormaMano(lm) {
 
 
         if (
-            tamanoMano > 0
+            tamano > 0 &&
+            separacion >
+            tamano * 0.45
         ) {
 
-            const distanciaRelativa =
-                distanciaDedos /
-                tamanoMano;
-
-
-            /*
-             * Índice y pulgar separados.
-             */
-
-            if (
-                distanciaRelativa >= 0.70
-            ) {
-
-                return "indicePulgar";
-
-            }
+            return "indicePulgar";
 
         }
 
@@ -904,68 +911,37 @@ function detectarFormaMano(lm) {
     /*
     ==========================================================
     ✊ PUÑO
-    ==========================================================
 
-    Aquí NO usamos simplemente:
+    Ya NO exigimos que absolutamente todos los dedos
+    sean detectados como cerrados.
 
-        !pulgar &&
-        !indice &&
-        !medio...
-
-    porque eso falla dependiendo de la orientación
-    de la mano.
-
-    En su lugar comprobamos qué tan cerca están
-    las puntas de los dedos de la palma.
+    Si 3 de 4 dedos principales están cerrados,
+    aceptamos el puño.
     ==========================================================
     */
 
     const indiceCerrado =
-        dedoCerrado(
-            lm,
-            8,
-            5
-        );
-
+        !indice;
 
     const medioCerrado =
-        dedoCerrado(
-            lm,
-            12,
-            9
-        );
-
+        !medio;
 
     const anularCerrado =
-        dedoCerrado(
-            lm,
-            16,
-            13
-        );
-
+        !anular;
 
     const meniqueCerrado =
-        dedoCerrado(
-            lm,
-            20,
-            17
-        );
+        !menique;
 
 
-    /*
-     * Si los cuatro dedos principales están cerrados,
-     * consideramos que es un puño.
-     *
-     * El pulgar NO se utiliza aquí porque puede cambiar
-     * bastante dependiendo de si el puño está de frente
-     * o de lado.
-     */
+    const dedosCerrados =
+        Number(indiceCerrado) +
+        Number(medioCerrado) +
+        Number(anularCerrado) +
+        Number(meniqueCerrado);
+
 
     if (
-        indiceCerrado &&
-        medioCerrado &&
-        anularCerrado &&
-        meniqueCerrado
+        dedosCerrados >= 3
     ) {
 
         return "puno";
@@ -1035,10 +1011,18 @@ function dedoExtendido(
     mcpIndex
 ) {
 
-    const punta = lm[puntaIndex];
-    const articulacion = lm[articulacionIndex];
-    const mcp = lm[mcpIndex];
-    const muneca = lm[0];
+    const punta =
+        lm[puntaIndex];
+
+    const articulacion =
+        lm[articulacionIndex];
+
+    const mcp =
+        lm[mcpIndex];
+
+    const muneca =
+        lm[0];
+
 
     if (
         !punta ||
@@ -1046,49 +1030,66 @@ function dedoExtendido(
         !mcp ||
         !muneca
     ) {
+
         return false;
+
     }
+
+
+    /*
+    ==========================================================
+    DISTANCIAS
+    ==========================================================
+    */
 
     const puntaMuneca =
-        distancia3D(punta, muneca);
+        distancia3D(
+            punta,
+            muneca
+        );
+
 
     const mcpMuneca =
-        distancia3D(mcp, muneca);
+        distancia3D(
+            mcp,
+            muneca
+        );
 
-    const puntaArticulacion =
-        distancia3D(punta, articulacion);
 
-    const articulacionMcp =
-        distancia3D(articulacion, mcp);
+    const puntaMcp =
+        distancia3D(
+            punta,
+            mcp
+        );
+
+
+    /*
+    ==========================================================
+    DEDO EXTENDIDO
+
+    Antes utilizábamos condiciones demasiado estrictas.
+
+    Ahora basta con que la punta esté suficientemente
+    lejos de la base.
+    ==========================================================
+    */
 
     if (
-        mcpMuneca <= 0 ||
-        articulacionMcp <= 0
+        mcpMuneca <= 0
     ) {
+
         return false;
+
     }
 
-    /*
-     * Un dedo extendido debe tener la punta
-     * claramente más lejos de la muñeca que su MCP.
-     */
-
-    const distanciaSuficiente =
-        puntaMuneca >
-        mcpMuneca * 1.08;
-
-    /*
-     * Y debe estar relativamente recto.
-     */
-
-    const dedoRecto =
-        puntaArticulacion >
-        articulacionMcp * 0.65;
 
     return (
-        distanciaSuficiente &&
-        dedoRecto
+        puntaMuneca >
+        mcpMuneca * 1.05 &&
+        puntaMcp >
+        mcpMuneca * 0.45
     );
+
 }
 
 /* ==========================================================
@@ -1097,17 +1098,26 @@ function dedoExtendido(
 
 function pulgarExtendido(lm) {
 
-    const punta = lm[4];
-    const base = lm[2];
-    const muneca = lm[0];
+    const punta =
+        lm[4];
+
+    const base =
+        lm[2];
+
+    const muneca =
+        lm[0];
+
 
     if (
         !punta ||
         !base ||
         !muneca
     ) {
+
         return false;
+
     }
+
 
     const puntaMuneca =
         distancia3D(
@@ -1115,28 +1125,35 @@ function pulgarExtendido(lm) {
             muneca
         );
 
+
     const baseMuneca =
         distancia3D(
             base,
             muneca
         );
 
+
     if (
         baseMuneca <= 0
     ) {
+
         return false;
+
     }
 
+
     /*
-     * El pulgar está extendido.
-     */
+    ==========================================================
+    PULGAR MÁS TOLERANTE
+    ==========================================================
+    */
 
     return (
         puntaMuneca >
-        baseMuneca * 1.08
+        baseMuneca * 1.03
     );
-}
 
+}
 /* ==========================================================
    CALCULAR ÁNGULO
 ========================================================== */
