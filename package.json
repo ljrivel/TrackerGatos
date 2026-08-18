@@ -1,0 +1,13 @@
+{
+  "name": "camara-imagenes-gatos",
+  "version": "1.0.0",
+  "description": "Efecto web con cámara y cambio de imágenes",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
