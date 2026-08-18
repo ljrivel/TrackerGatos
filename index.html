@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Tracker de gestos + gatos</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+    <main class="app">
+
+
+
+        <!-- ==================================================
+             ESCENARIO
+        =================================================== -->
+
+        <div class="stage">
+
+
+            <!-- ==================================================
+                 CÁMARA
+            =================================================== -->
+
+            <div
+                id="cameraDiv"
+                class="camera-div"
+            >
+
+                <video
+                    id="camera"
+                    autoplay
+                    playsinline
+                    muted
+                ></video>
+
+
+                <div
+                    id="cameraMessage"
+                    class="camera-message"
+                >
+                    Presiona "Iniciar tracker"
+                </div>
+
+            </div>
+
+
+            <!-- ==================================================
+                 GATO / REACCIÓN
+            =================================================== -->
+
+            <div
+                id="imageDiv"
+                class="image-div oculto"
+            >
+
+                <img
+                    id="gatoImagen"
+                    src=""
+                    alt="Reacción"
+                >
+
+                <!-- Se mantiene oculto mediante CSS -->
+                <div
+                    id="gestureName"
+                    class="gesture-name"
+                ></div>
+
+            </div>
+
+
+            <!-- ==================================================
+                 ESTADO DEL TRACKER
+            =================================================== -->
+
+            <div
+                id="trackingBadge"
+                class="tracking-badge"
+            >
+                Esperando gesto...
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+             CONTROLES
+        =================================================== -->
+
+        <div class="controls">
+
+            <button
+                id="btnCamera"
+                type="button"
+            >
+                📷 Iniciar tracker
+            </button>
+
+
+            <button
+                id="btnStop"
+                type="button"
+            >
+                ⏹ Detener
+            </button>
+
+        </div>
+
+
+        <!-- ==================================================
+             AYUDA
+        =================================================== -->
+
+        <div class="help">
+
+            <strong>
+                Gestos configurados
+            </strong>
+
+
+            <div class="gesture-list">
+
+                <span>
+                    🤙 Shaka → gato 1
+                </span>
+
+                <span>
+                    🖐️ Mano abierta → gato 2
+                </span>
+
+                <span>
+                    ☝️👍 Índice + pulgar → gato 3
+                </span>
+
+                <span>
+                    👤 Cara de medio lado → gato 4
+                </span>
+
+                <span>
+                    ✊ Puño → gato 5
+                </span>
+
+            </div>
+
+
+            <p>
+                Haz el gesto frente a la cámara.
+                La cámara permanece visible y el gato
+                aparece como reacción.
+            </p>
+
+        </div>
+
+    </main>
+
+
+    <!-- ======================================================
+         MEDIAPIPE HOLISTIC
+    ======================================================= -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js"
+    ></script>
+
+
+    <!-- ======================================================
+         TRACKER
+    ======================================================= -->
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
