@@ -984,78 +984,44 @@ function dedoCerrado(
     baseIndex
 ) {
 
-    const punta =
-        lm[puntaIndex];
-
-    const base =
-        lm[baseIndex];
-
-    const muneca =
-        lm[0];
-
+    const punta = lm[puntaIndex];
+    const base = lm[baseIndex];
+    const muneca = lm[0];
 
     if (
         !punta ||
         !base ||
         !muneca
     ) {
-
         return false;
-
     }
 
-
-    /*
-    ==========================================================
-    DISTANCIA DE LA PUNTA A LA MUÑECA
-    ==========================================================
-    */
-
-    const distanciaPunta =
+    const puntaMuneca =
         distancia3D(
             punta,
             muneca
         );
 
-
-    /*
-    ==========================================================
-    DISTANCIA DE LA BASE A LA MUÑECA
-    ==========================================================
-    */
-
-    const distanciaBase =
+    const baseMuneca =
         distancia3D(
             base,
             muneca
         );
 
-
     if (
-        distanciaBase <= 0
+        baseMuneca <= 0
     ) {
-
         return false;
-
     }
 
-
     /*
-    ==========================================================
-    PUÑO
-
-    Cuando el dedo está cerrado, su punta está mucho
-    más cerca de la palma que cuando está extendido.
-
-    1.55 es un valor relativamente tolerante.
-    ==========================================================
-    */
+     * Más tolerante para móvil.
+     */
 
     return (
-        distanciaPunta <
-        distanciaBase * 1.55
+        puntaMuneca <
+        baseMuneca * 1.70
     );
-
 }
 
 /* ==========================================================
@@ -1069,21 +1035,10 @@ function dedoExtendido(
     mcpIndex
 ) {
 
-    const punta =
-        lm[puntaIndex];
-
-
-    const articulacion =
-        lm[articulacionIndex];
-
-
-    const mcp =
-        lm[mcpIndex];
-
-
-    const muneca =
-        lm[0];
-
+    const punta = lm[puntaIndex];
+    const articulacion = lm[articulacionIndex];
+    const mcp = lm[mcpIndex];
+    const muneca = lm[0];
 
     if (
         !punta ||
@@ -1091,66 +1046,50 @@ function dedoExtendido(
         !mcp ||
         !muneca
     ) {
-
         return false;
-
     }
 
+    const puntaMuneca =
+        distancia3D(punta, muneca);
+
+    const mcpMuneca =
+        distancia3D(mcp, muneca);
+
+    const puntaArticulacion =
+        distancia3D(punta, articulacion);
+
+    const articulacionMcp =
+        distancia3D(articulacion, mcp);
+
+    if (
+        mcpMuneca <= 0 ||
+        articulacionMcp <= 0
+    ) {
+        return false;
+    }
 
     /*
-     * Distancia punta → muñeca.
+     * Un dedo extendido debe tener la punta
+     * claramente más lejos de la muñeca que su MCP.
      */
 
-    const distanciaPunta =
-        distancia3D(
-            punta,
-            muneca
-        );
-
+    const distanciaSuficiente =
+        puntaMuneca >
+        mcpMuneca * 1.08;
 
     /*
-     * Distancia MCP → muñeca.
+     * Y debe estar relativamente recto.
      */
 
-    const distanciaMcp =
-        distancia3D(
-            mcp,
-            muneca
-        );
-
-
-    /*
-     * Longitud suficiente.
-     */
-
-    const suficientementeLargo =
-        distanciaPunta >
-        distanciaMcp * 1.20;
-
-
-    /*
-     * Ángulo.
-     */
-
-    const angulo =
-        calcularAngulo(
-            mcp,
-            articulacion,
-            punta
-        );
-
-
-    const suficientementeRecto =
-        angulo > 140;
-
+    const dedoRecto =
+        puntaArticulacion >
+        articulacionMcp * 0.65;
 
     return (
-        suficientementeLargo &&
-        suficientementeRecto
+        distanciaSuficiente &&
+        dedoRecto
     );
-
 }
-
 
 /* ==========================================================
    DETECTAR PULGAR
@@ -1158,80 +1097,45 @@ function dedoExtendido(
 
 function pulgarExtendido(lm) {
 
-    const punta =
-        lm[4];
-
-    const base =
-        lm[2];
-
-    const muneca =
-        lm[0];
-
+    const punta = lm[4];
+    const base = lm[2];
+    const muneca = lm[0];
 
     if (
         !punta ||
         !base ||
         !muneca
     ) {
-
         return false;
-
     }
 
-
-    const distanciaPunta =
+    const puntaMuneca =
         distancia3D(
             punta,
             muneca
         );
 
-
-    const distanciaBase =
+    const baseMuneca =
         distancia3D(
             base,
             muneca
         );
 
+    if (
+        baseMuneca <= 0
+    ) {
+        return false;
+    }
 
     /*
-     * Pulgar extendido.
+     * El pulgar está extendido.
      */
-
-    const extendido =
-        distanciaPunta >
-        distanciaBase * 1.15;
-
-
-    /*
-     * Separación del índice.
-     */
-
-    const distanciaIndice =
-        distancia3D(
-            punta,
-            lm[5]
-        );
-
-
-    const distanciaBaseIndice =
-        distancia3D(
-            base,
-            lm[5]
-        );
-
-
-    const separadoDelIndice =
-        distanciaIndice >
-        distanciaBaseIndice * 0.65;
-
 
     return (
-        extendido &&
-        separadoDelIndice
+        puntaMuneca >
+        baseMuneca * 1.08
     );
-
 }
-
 
 /* ==========================================================
    CALCULAR ÁNGULO
