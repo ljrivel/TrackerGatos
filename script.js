@@ -14,11 +14,11 @@ const stage = document.querySelector(".stage");
 ========================================================== */
 
 const imagenes = [
-    "/images/gato1.jpg",
-    "/images/gato2.jpg",
-    "/images/gato3.jpg",
-    "/images/gato4.jpg",
-    "/images/gato5.jpg"
+    "./images/gato1.jpg",
+    "./images/gato2.jpg",
+    "./images/gato3.jpg",
+    "./images/gato4.jpg",
+    "./images/gato5.jpg"
 ];
 
 
